@@ -1,6 +1,6 @@
 use crate::game::world::World;
 use macroquad::prelude::Color;
-use std::fmt::{Formatter, Debug};
+use std::fmt::{Formatter, Debug, Pointer};
 use core::fmt;
 use crate::game::coords::WorldTilePos;
 
@@ -25,6 +25,7 @@ impl Direction {
 
 // Will swap the positions of the current tile with the target tile
 // Otherwise it will replace the previous position with an empty tile
+#[derive(Debug)]
 pub struct SwapWithTarget(pub bool);
 
 #[derive(Debug)]
@@ -33,15 +34,19 @@ pub enum TileAction {
     Move(Direction, SwapWithTarget),
 }
 
-pub trait Tile {
+#[derive(Clone, Copy)]
+pub struct Tile {
+    pub(crate) actions: &'static dyn TileActions,
+}
+
+impl Debug for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.actions.get_name())
+    }
+}
+
+pub trait TileActions: 'static {
     fn get_action(&self, world: &World) -> TileAction;
     fn get_color(&self) -> Color;
     fn get_name(&self) -> &'static str;
-    fn into_box(&self) -> Box<dyn Tile>;
-}
-
-impl Debug for dyn Tile {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Series{{{}}}", self.get_name())
-    }
 }

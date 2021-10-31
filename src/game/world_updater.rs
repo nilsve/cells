@@ -1,8 +1,7 @@
 use crate::game::world::{World, WorldError};
 use crate::game::chunk::Chunk;
 use crate::game::coords::{ChunkPos, ChunkTilePos, WorldTilePos};
-use crate::game::tiles::empty::EmptyTile;
-use crate::game::tiles::sand::SandTile;
+use crate::game::tiles::empty::empty_tile;
 use crate::game::tiles::tile::{Tile, TileAction};
 
 impl World {
@@ -13,25 +12,38 @@ impl World {
 
             for tile_x in 0..chunk.chunk_size {
                 for tile_y in 0..chunk.chunk_size {
-                    let world_tile_pos = WorldTilePos::new(chunk_pos.x + tile_x,chunk_pos.y + tile_y);
+                    let world_tile_pos = WorldTilePos::new(chunk_pos.x * self.get_chunk_size() + tile_x,chunk_pos.y * self.get_chunk_size() + tile_y);
                     let (_, chunk_tile_pos) = self.extract_world_tile_positions(&world_tile_pos);
-                    let tile = chunk.get_tile_mut(&chunk_tile_pos);
-                    let action = tile.get_action(&self);
+                    let tile = chunk.get_tile(&chunk_tile_pos).clone();
+                    let action = tile.actions.get_action(&self);
                     if let TileAction::Move(direction, swap_with_target) = action {
                         let (target_chunk_pos, target_chunk_tile_pos) = self.extract_world_tile_positions(&WorldTilePos::new(world_tile_pos.x + direction.x, world_tile_pos.y + direction.y));
 
-                         if !swap_with_target.0 {
-                             *tile = EmptyTile::new().into_box();
-                         } else {
-
-                         }
-
                         if target_chunk_pos.x != chunk_pos.x || target_chunk_pos.y != chunk_pos.y {
-                            if let Some(target_chunk) = self.get_chunk(&target_chunk_pos) {
-                                *target_chunk.lock().unwrap().get_tile_mut(&target_chunk_tile_pos) = SandTile::new().into_box();
+                            if let Some(mutex) = self.get_chunk(&target_chunk_pos) {
+                                let mut target_chunk = mutex.lock().unwrap();
+                                let target_tile = target_chunk.get_tile_mut(&target_chunk_tile_pos);
+
+                                if !swap_with_target.0 {
+                                    *target_tile = tile.clone();
+                                    *chunk.get_tile_mut(&chunk_tile_pos) = empty_tile::new();
+                                } else {
+                                    let copy = target_tile.clone();
+                                    *target_tile = tile.clone();
+                                    *chunk.get_tile_mut(&chunk_tile_pos) = copy;
+                                }
                             }
                         } else {
-                            *chunk.get_tile_mut(&target_chunk_tile_pos) = Box::new(tile.clone());
+                            let target_tile = chunk.get_tile_mut(&target_chunk_tile_pos);
+
+                                if !swap_with_target.0 {
+                                *target_tile = tile.clone();
+                                *chunk.get_tile_mut(&chunk_tile_pos) = empty_tile::new();
+                            } else {
+                                let copy = target_tile.clone();
+                                *target_tile = tile.clone();
+                                *chunk.get_tile_mut(&chunk_tile_pos) = copy;
+                            }
                         }
                     }
                 }

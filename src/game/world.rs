@@ -81,17 +81,17 @@ impl World {
     //     Some(tile.())
     // }
 
-    pub fn replace_tile(&mut self, world_tile_pos: &WorldTilePos, tile: &dyn Tile) -> Result<(), WorldError> {
+    pub fn replace_tile(&mut self, world_tile_pos: &WorldTilePos, tile: Tile) -> Result<(), WorldError> {
         let (chunk_pos, chunk_tile_pos) = self.extract_world_tile_positions(&world_tile_pos);
 
-        *self.get_chunk(&chunk_pos).ok_or(WorldError::ChunkDoesntExist)?.lock().unwrap().get_tile_mut(&chunk_tile_pos) = tile.into_box();
+        *self.get_chunk(&chunk_pos).ok_or(WorldError::ChunkDoesntExist)?.lock().unwrap().get_tile_mut(&chunk_tile_pos) = tile;
         // let found_tile = chunk.get_tile_mut(&chunk_tile_pos);
         // *found_tile = tile.into_box();
 
         Ok(())
     }
 
-    pub fn replace_tile_test(&mut self, world_tile_pos: &WorldTilePos, tile: Box<dyn Tile>) -> Result<(), WorldError> {
+    pub fn replace_tile_test(&mut self, world_tile_pos: &WorldTilePos, tile: Tile) -> Result<(), WorldError> {
         let (chunk_pos, chunk_tile_pos) = self.extract_world_tile_positions(&world_tile_pos);
 
         let mutex = self.get_chunk(&chunk_pos).ok_or(WorldError::ChunkDoesntExist)?;
@@ -102,7 +102,7 @@ impl World {
         Ok(())
     }
 
-    pub fn upsert_tile(&mut self, world_tile_pos: &WorldTilePos, tile: &Box<dyn Tile>) {
+    pub fn upsert_tile(&mut self, world_tile_pos: &WorldTilePos, tile: Tile) {
         let (chunk_pos, chunk_tile_pos) = self.extract_world_tile_positions(&world_tile_pos);
 
         let mutex = self.upsert_chunk(&chunk_pos);
@@ -110,9 +110,7 @@ impl World {
         let found_tile = chunk.get_tile_mut(&chunk_tile_pos);
         // let cloned = dyn_clone::clone_box(&*tile);
 
-        let c = tile.clone();
-        let copy: Box<dyn Tile> = c.into_box();
-        *found_tile = copy;
+        *found_tile = tile.clone();
     }
 
     fn convert_to_chunk_pos(&self, coords: &WorldTilePos) -> ChunkPos {

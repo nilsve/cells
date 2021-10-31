@@ -1,32 +1,29 @@
-use crate::game::tiles::tile::{TileAction, Tile};
-use crate::game::world::World;
-use macroquad::color::Color;
-use macroquad::prelude::BLUE;
+pub mod empty_tile {
+    use macroquad::prelude::{BLUE, Color};
+    use crate::game::tiles::tile::{Tile, TileAction, TileActions};
+    use crate::game::world::World;
 
-#[derive(Debug, Copy, Clone)]
-pub struct EmptyTile;
+    struct AirTileActions;
 
-impl Tile for EmptyTile {
-    fn get_action(&self, _: &World) -> TileAction {
-        TileAction::Nothing
+    impl TileActions for AirTileActions {
+        fn get_action(&self, world: &World) -> TileAction {
+            TileAction::Nothing
+        }
+
+        fn get_color(&self) -> Color {
+            BLUE
+        }
+
+        fn get_name(&self) -> &'static str {
+            "Air"
+        }
     }
 
-    fn get_color(&self) -> Color {
-        BLUE
-    }
-
-    fn get_name(&self) -> &'static str {
-        return "Air";
-    }
-
-    fn into_box(&self) -> Box<dyn Tile> {
-        let result: Box<dyn Tile> = Box::from(self.clone());
-        result
-    }
-}
-
-impl EmptyTile {
-    pub fn new() -> Self {
-        EmptyTile
+    pub fn new() -> Tile {
+        Tile {
+            actions: &AirTileActions,
+        }
     }
 }
+
+

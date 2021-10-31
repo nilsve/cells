@@ -2,7 +2,7 @@ use crate::game::coords::WorldTilePos;
 use std::thread::sleep;
 use std::time::Duration;
 use macroquad::prelude::*;
-use crate::game::tiles::sand::SandTile;
+use crate::game::tiles::sand::sand_tile;
 
 mod game;
 
@@ -10,7 +10,7 @@ mod game;
 async fn main() {
     let mut world = game::world::World::new(10);
     world.init_world(4);
-    world.replace_tile(&WorldTilePos::new(1, 1), &SandTile::new());
+    world.replace_tile(&WorldTilePos::new(-20, 0), sand_tile::new());
     // world.replace_tile(&WorldTilePos::new(3, 2), &SandTile::new());
 
     let mut offset = (0., 0.);
